@@ -131,8 +131,34 @@ def create_order():
     return jsonify({'message': 'Order placed successfully', 'order_id': order_id})
 
 
-def get_order():
-    return "<p>Hello, World!</p>"
+@app.route('/get_orders', methods=['GET'])
+def get_orders():
+    db = get_db()
+    cursor = db.cursor()
 
+    cursor.execute("SELECT * FROM Orders")
+    orders = cursor.fetchall()
 
+    order_list = []
+    for order in orders:
+        order_id, pizza_id, customer_name, address = order
 
+        # Retrieve pizza details
+        cursor.execute("SELECT name FROM Pizza WHERE id=?", (pizza_id,))
+        pizza_name = cursor.fetchone()[0]
+
+        # Retrieve extra ingredients for the order
+        cursor.execute("SELECT Ingredient.name FROM OrderExtras JOIN Ingredient ON OrderExtras.extra_id=Ingredient.ingredient_id WHERE OrderExtras.order_id=?", (order_id,))
+        extra_ingredients = [row[0] for row in cursor.fetchall()]
+
+        order_data = {
+            'order_id': order_id,
+            'pizza_id': pizza_id,
+            'pizza_name': pizza_name,
+            'customer_name': customer_name,
+            'address': address,
+            'extra_ingredients': extra_ingredients
+        }
+        order_list.append(order_data)
+
+    return jsonify(order_list)
