@@ -8,6 +8,6 @@ ReactJS handles props, json data to render fornt end, treated a saSingle page ap
 
 ## items used in this project
 -Flask
--sqlite
+-sqlite3
 -reactjs
-
+-pyhon3
