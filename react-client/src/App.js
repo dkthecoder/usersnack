@@ -1,14 +1,25 @@
 import './App.css';
+import { Route, Routes } from "react-router-dom";
+
+import Navbar from './Navbar';
+import Pizzas from './Pizzas';
+import Pizza from './Pizza';
+import Home from './Home';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-      </header>
-    </div>
+    <>
+      <Navbar />
+      <div className='container'>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/pizzas" element={<Pizzas />} />
+          <Route path="/pizza" element={<Pizza />} />
+        </Routes>
+
+      </div>
+
+    </>
   );
 }
 
