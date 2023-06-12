@@ -11,3 +11,8 @@ ReactJS handles props, json data to render fornt end, treated a saSingle page ap
 -sqlite3
 -reactjs
 -pyhon3
+
+
+## how to use the project
+-start flask back-end
+-start react front-end: navigate to react-client folder and run `npm start` in terminal
