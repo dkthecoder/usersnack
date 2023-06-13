@@ -1,4 +1,18 @@
---the pizza (one pizza to many orders)
+-- Drop all tables FIRST
+DROP TABLE IF EXISTS Orders;
+DROP TABLE IF EXISTS PizzaIngredients;
+DROP TABLE IF EXISTS Ingredient;
+DROP TABLE IF EXISTS Extra;
+DROP TABLE IF EXISTS Pizza;
+DROP VIEW IF EXISTS PizzaView;
+
+-- Enable foreign key constraints
+PRAGMA foreign_keys = ON;
+
+-- Set the maximum length for GROUP_CONCAT function
+PRAGMA group_concat_max_len = 100000;
+
+-- the pizza (one pizza to many orders)
 CREATE TABLE Pizza (
   pizza_id INT PRIMARY KEY,
   name VARCHAR(255),
@@ -6,36 +20,38 @@ CREATE TABLE Pizza (
   image VARCHAR(255)
 );
 
---ingredients for pizza (one ingredients to many pizzaingredients)
+-- ingredients for pizza (one ingredient to many pizzaingredients)
 CREATE TABLE Ingredient (
   ingredient_id INT PRIMARY KEY,
   name VARCHAR(255)
 );
 
---extra added ingredients (one extra to many orders)
+-- extra added ingredients (one extra to many orders)
 CREATE TABLE Extra (
   extra_id INTEGER PRIMARY KEY,
   name TEXT,
   price REAL
 );
 
---JUNTION TABLE
+-- JUNCTION TABLE
 CREATE TABLE PizzaIngredients (
+  pizza_id INT,
+  ingredient_id INT,
   FOREIGN KEY (pizza_id) REFERENCES Pizza(pizza_id),
   FOREIGN KEY (ingredient_id) REFERENCES Ingredient(ingredient_id)
 );
 
 CREATE TABLE Orders (
   order_id INT PRIMARY KEY,
-  FOREIGN KEY (pizza_id) REFERENCES Pizza(pizza_id) --pizza table pk to fk
+  pizza_id INT,
   customer_name VARCHAR(255),
   address VARCHAR(255), 
-  extra_ingredient_ids VARCHAR(255) --comma seperated ids of extra table values
+  extra_ingredient_ids VARCHAR(255), -- comma-separated ids of extra table values
+  FOREIGN KEY (pizza_id) REFERENCES Pizza(pizza_id)
 );
 
-
 -- Insert Pizza data
-INSERT INTO Pizza (id, name, price, image)
+INSERT INTO Pizza (pizza_id, name, price, image)
 VALUES
   (1, 'Cheese & Tomato', 11.90, 'cheesetomato.jpg'),
   (2, 'Mighty Meaty', 16.90, 'mighty-meaty-pizza.jpg'),
@@ -52,7 +68,7 @@ VALUES
   (13, 'Tandoori Hot', 16.90, 'tandoori-hot-pizza.jpg'),
   (14, 'The Sizzler', 16.90, 'TheSizzler80x56.jpg');
 
---insert ingredents data
+-- Insert ingredients data
 INSERT INTO Ingredient (ingredient_id, name)
 VALUES
   (1, 'tomato'),
@@ -72,7 +88,7 @@ VALUES
   (15, 'pork meatballs'),
   (16, 'garlic sauce');
 
---insert extras data
+-- Insert extras data
 INSERT INTO Extra (extra_id, name, price)
 VALUES
   (1, 'ham', 2),
@@ -82,7 +98,7 @@ VALUES
   (5, 'green peppers', 1.2),
   (6, 'mushrooms', 1.2);
 
---inset pizza mappings
+-- Insert pizza mappings
 INSERT INTO PizzaIngredients (pizza_id, ingredient_id)
 VALUES
   (1, 1),
@@ -144,3 +160,11 @@ VALUES
   (14, 11),
   (14, 13),
   (14, 15);
+
+-- Create a temporary view to represent pizzas with concatenated ingredients
+CREATE VIEW PizzaView AS
+SELECT p.pizza_id, p.name, p.price, p.image, GROUP_CONCAT(i.name) AS ingredients
+FROM Pizza p
+JOIN PizzaIngredients pi ON p.pizza_id = pi.pizza_id
+JOIN Ingredient i ON pi.ingredient_id = i.ingredient_id
+GROUP BY p.pizza_id;
