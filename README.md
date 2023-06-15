@@ -14,5 +14,5 @@ ReactJS handles props, json data to render fornt end, treated a saSingle page ap
 
 
 ## how to use the project
--start flask back-end
+-start flask back-end: python -m flask --app .\app.py run
 -start react front-end: navigate to react-client folder and run `npm start` in terminal

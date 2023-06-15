@@ -1,7 +1,9 @@
-from flask import Flask, request, jsonify, g
+from flask import Flask, request, jsonify
 import sqlite3
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 DATABASE = 'database.db'
 SCHEMA = 'schema.sql'
@@ -73,29 +75,42 @@ def get_pizza(pizza_id):
 
     return jsonify(pizza)
 
+@app.route('/get_extra_ingredients', methods=['GET'])
+def get_extra_ingredients():
+    db = get_db()
+    cursor = db.cursor()
 
+    # Retrieve all records from the Extra table
+    cursor.execute("SELECT * FROM Extra")
+    extras = cursor.fetchall()
+
+    # Prepare a list of dictionaries for JSON serialization
+    extra_ingredients = []
+    for extra in extras:
+        extra_data = {
+            'extra_id': extra[0],
+            'name': extra[1],
+            'price': extra[2]
+        }
+        extra_ingredients.append(extra_data)
+
+    return jsonify(extra_ingredients)
 
 @app.route('/create_order', methods=['POST'])
 def create_order():
-    pizza_id = int(request.form.get('pizza_id'))
-    customer_name = request.form.get('customer_name')
-    address = request.form.get('address')
-    extra_ids = request.form.get('extra_ids')
+    data = request.json
+    pizza_id = int(data.get('pizza_id'))
+    customer_name = data.get('customer_name')
+    address = data.get('address')
+    extra_ids = data.get('extra_ids')
 
     db = get_db()
     cursor = db.cursor()
 
     # Insert order into the Orders table
-    cursor.execute("INSERT INTO Orders (pizza_id, customer_name, address) VALUES (?, ?, ?)",
-                   (pizza_id, customer_name, address))
+    cursor.execute("INSERT INTO Orders (pizza_id, customer_name, address, extra_ingredient_ids) VALUES (?, ?, ?, ?)",
+                   (pizza_id, customer_name, address, extra_ids))
     order_id = cursor.lastrowid
-
-    # Insert extra ingredients into the OrderExtras table
-    if extra_ids:
-        extra_ids = extra_ids.split(',')
-        for extra_id in extra_ids:
-            cursor.execute("INSERT INTO OrderExtras (order_id, extra_id) VALUES (?, ?)",
-                           (order_id, extra_id))
 
     db.commit()
 

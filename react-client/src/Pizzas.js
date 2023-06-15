@@ -1,42 +1,48 @@
+import { useState, useEffect } from "react";
 import './Pizzas.css';
-import { Route, Routes } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Pizzas() {
+  const [pizzas, setPizzas] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchPizzas();
+  }, []);
+
+  const fetchPizzas = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/pizzas");
+      const data = await response.json();
+      setPizzas(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleOrderClick = (pizzaId) => {
+    navigate(`/pizza/${pizzaId}`);
+  };
+
   return (
     <div>
-
-      <div class="row mb-2 container-fluid row-gap-3">
-
-        <div class="col-md-6">
-          <div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
-            <div class="col p-4 d-flex flex-column position-static">
-              <h3 class="mb-0">Featured post</h3>
-              <div class="mb-1 text-body-secondary">Nov 12</div>
-              <p class="card-text mb-auto">This is a wider card with supporting text below as a natural lead-in to additional content.</p>
-              <a href="#" class="icon-link gap-1 icon-link-hover stretched-link">Continue reading</a>
-            </div>
-            <div class="col-auto d-none d-lg-block">
-              <img class="bd-placeholder-img" width="200" height="250" href="http://www.w3.org/2000/svg"aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false" />
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-6">
-          <div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
-            <div class="col p-4 d-flex flex-column position-static">
-              <h3 class="mb-0">Post title</h3>
-              <div class="mb-1 text-body-secondary">Nov 11</div>
-              <p class="mb-auto">This is a wider card with supporting text below as a natural lead-in to additional content.</p>
-              <a href="#" class="icon-link gap-1 icon-link-hover stretched-link">Continue reading</a>
-            </div>
-            <div class="col-auto d-none d-lg-block">
-              <img class="bd-placeholder-img" width="200" height="250" href="http://www.w3.org/2000/svg" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false" />
+      {pizzas.map((pizza) => (
+        <div class="row mb-2 container-fluid row-gap-3" key={pizza.id}>
+          <div class="col-md-12">
+            <div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+              <div class="col p-4 d-flex flex-column position-static">
+                <h3 class="mb-0">{pizza.name}</h3>
+                <div class="mb-1 text-body-secondary">Price: €{pizza.price}0</div>
+                <p class="card-text mb-auto">Ingredients: {pizza.ingredients.join(", ")}</p>
+                <button type="button" class="btn btn-info" onClick={() => handleOrderClick(pizza.id)}>Order Now</button>
+              </div>
+              <div class="col-auto d-none d-lg-block">
+                <img class="" src={`/img/${pizza.image}`} width="200" height="250" alt="Pizza Thumbnail" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
-
+      ))}
     </div>
   );
 }
