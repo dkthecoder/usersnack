@@ -127,15 +127,25 @@ def get_orders():
 
     order_list = []
     for order in orders:
-        order_id, pizza_id, customer_name, address = order
+        order_id, pizza_id, customer_name, address, extra_ingredients_str = order
 
         # Retrieve pizza details
-        cursor.execute("SELECT name FROM Pizza WHERE id=?", (pizza_id,))
+        cursor.execute("SELECT name FROM Pizza WHERE pizza_id=?", (pizza_id,))
         pizza_name = cursor.fetchone()[0]
 
-        # Retrieve extra ingredients for the order
-        cursor.execute("SELECT Ingredient.name FROM OrderExtras JOIN Ingredient ON OrderExtras.extra_id=Ingredient.ingredient_id WHERE OrderExtras.order_id=?", (order_id,))
-        extra_ingredients = [row[0] for row in cursor.fetchall()]
+        # Split the extra ingredient IDs if the string is not empty
+        extra_ingredients = []
+        if extra_ingredients_str:
+            extra_ids = [int(extra_id) for extra_id in extra_ingredients_str.split(",")]
+
+            # Fetch the names of valid extra ingredient IDs
+            cursor.execute("SELECT name FROM Extra WHERE extra_id IN ({})".format(",".join(["?"] * len(extra_ids))), extra_ids)
+            extra_ingredients = [row[0] for row in cursor.fetchall()]
+            extra_ingredients = ", ".join(extra_ingredients)
+
+        # Assign default value if no extra ingredients
+        if not extra_ingredients:
+            extra_ingredients = ["No extra ingredients"]
 
         order_data = {
             'order_id': order_id,
@@ -148,6 +158,7 @@ def get_orders():
         order_list.append(order_data)
 
     return jsonify(order_list)
+
 
 # Function to initialize the app and database
 def initialize_app():
