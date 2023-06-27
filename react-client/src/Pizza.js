@@ -14,11 +14,18 @@ function Pizza() {
   const [alertMessage, setAlertMessage] = useState("");
   const [showAlert, setShowAlert] = useState(false);
 
+  // price total
+  const [totalPrice, setTotalPrice] = useState(0);
 
   useEffect(() => {
     fetchPizza();
     fetchExtraIngredients();
   }, []);
+
+  useEffect(() => {
+    calculateTotalPrice();
+  }, [pizza, extraIngredients, selectedExtras]);
+
 
   // Use pizza_id to fetch data from the Flask API
   const fetchPizza = async () => {
@@ -26,21 +33,32 @@ function Pizza() {
       const response = await fetch(`http://localhost:5000/pizza/${pizza_id}`);
       const data = await response.json();
       setPizza(data); // Update the pizza state with the fetched data
+  
+      calculateTotalPrice(); // Calculate the total price after updating the pizza data
     } catch (error) {
       console.log(error);
     }
   };
+
 
   // Gets all extra ingredients available
   const fetchExtraIngredients = async () => {
     try {
       const response = await fetch('http://localhost:5000/get_extra_ingredients');
       const data = await response.json();
-      setExtraIngredients(data);
+
+      // Parse the price of each extra ingredient as a float
+      const extraIngredientsWithParsedPrice = data.map((ingredient) => ({
+        ...ingredient,
+        price: parseFloat(ingredient.price),
+      }));
+
+      setExtraIngredients(extraIngredientsWithParsedPrice);
     } catch (error) {
       console.log(error);
     }
   };
+
 
   const submitOrder = async (e) => {
     e.preventDefault();
@@ -67,18 +85,18 @@ function Pizza() {
 
       // Show the alert message
       if (response.status === 200) {
-      // Show the success alert message
-      setAlertMessage("Order placed successfully!");
-      setShowAlert(true);
+        // Show the success alert message
+        setAlertMessage("Order placed successfully!");
+        setShowAlert(true);
 
-      // Reset the form and selected extras
-      e.target.reset();
-      setSelectedExtras([]);
-    } else {
-      // Show the error alert message
-      setAlertMessage("Error placing the order. Please try again.");
-      setShowAlert(true);
-    }
+        // Reset the form and selected extras
+        e.target.reset();
+        setSelectedExtras([]);
+      } else {
+        // Show the error alert message
+        setAlertMessage("Error placing the order. Please try again.");
+        setShowAlert(true);
+      }
 
       // Reset the form and selected extras
       e.target.reset();
@@ -87,6 +105,24 @@ function Pizza() {
       console.log(error);
     }
   };
+
+  // Calculate the total price based on the pizza and selected extras
+  const calculateTotalPrice = () => {
+  if (pizza) {
+    let totalPrice = parseFloat(pizza.price); // Convert base price to a float
+
+    // Add the prices of the selected extras
+    selectedExtras.forEach((extraId) => {
+      const selectedExtra = extraIngredients.find((ingredient) => ingredient.extra_id === extraId);
+      if (selectedExtra) {
+        totalPrice += parseFloat(selectedExtra.price); // Convert extra ingredient price to a float
+      }
+    });
+
+    setTotalPrice(totalPrice);
+  }
+};
+
 
   return (
     <div>
@@ -100,8 +136,13 @@ function Pizza() {
               <h1 className="display-5 fw-bold text-body-emphasis lh-1 mb-3">{pizza.name}</h1>
               <p className="lead">Ingredients: {pizza.ingredients.join(", ")}</p>
               <div className="d-grid gap-2 d-md-flex justify-content-md-start">
-                <p className="lead">Price: €{pizza.price}0</p>
+                <p className="lead">Base Price: €{pizza.price}0</p>
               </div>
+
+              <hr className="my-4"></hr>
+
+              <h4 className="fw-bold text-body-emphasis lh-1 mb-3">Total price: €{totalPrice.toFixed(2)}</h4>
+
             </div>
           </div>
         </div>
@@ -121,7 +162,7 @@ function Pizza() {
       <div className="container col-xxl-8 px-4 py-5">
         <div className="row">
           <div className="col-lg-6">
-            <h4 className="mb-3">Pick any extra Ingredients</h4>
+            <h4 className="mb-3">Pick Extra Ingredients (optional)</h4>
             <div className="list-group">
               {extraIngredients.map((ingredient) => (
                 <label className="list-group-item d-flex gap-2" key={ingredient.extra_id}>
@@ -138,9 +179,11 @@ function Pizza() {
                           prevExtras.filter((id) => id !== extraId)
                         );
                       }
+                      calculateTotalPrice(); // Call calculateTotalPrice after updating selected extras
                     }}
                   />
                   <span>{ingredient.name}</span>
+                  <span>€{ingredient.price}</span>
                 </label>
               ))}
             </div>
@@ -172,6 +215,7 @@ function Pizza() {
 
                 <button className="w-100 btn btn-primary btn-lg" type="submit">Create Order</button>
               </form>
+
             </div>
           </div>
         </div>

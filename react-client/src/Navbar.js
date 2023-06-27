@@ -3,18 +3,14 @@ import { Link } from 'react-router-dom';
 function Navbar() {
   return (
 
-    <div>
-      <div class="container">
-        <header class="d-flex justify-content-center py-3">
-          <ul class="nav nav-pills">
-            <li class="nav-item"><Link to="/" class="nav-link">Home</Link></li>
-            <li class="nav-item"><Link to="/pizzas" class="nav-link">Pizzas</Link></li>
-            <li class="nav-item"><Link to="/orders" class="nav-link">Orders</Link></li>
-          </ul>
-        </header>
-      </div>
-      <hr class="my-4"></hr>
-    </div>
+      <header class="d-flex justify-content-center py-3 gy-5">
+        <ul class="nav nav-pills gap-3">
+          <button type="button" class="btn btn-outline-primary"><Link to="/" class="text-body-emphasis">Home</Link></button>
+          <button type="button" class="btn btn-outline-primary"><Link to="/pizzas" class="text-body-emphasis">Pizzas</Link></button>
+          <button type="button" class="btn btn-outline-primary"><Link to="/orders" class="text-body-emphasis">Orders</Link></button>
+        </ul>
+      </header>
+
 
   );
 }
